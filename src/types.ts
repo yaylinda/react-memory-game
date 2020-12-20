@@ -4,10 +4,9 @@ export type Dot = {
 };
 
 export type LevelData = {
-  level: number,
   numCols: number,
   correctSequence: number[],
   grid: Dot[],
 };
 
-export type GameStage = "GENERATE_LEVEL" | "SHOW_PREVIEW" | "ACCEPT_INPUT";
+export type GameStage = "PENDING" | "GENERATE_LEVEL" | "SHOW_PREVIEW" | "ACCEPT_INPUT" | "GAME_OVER";

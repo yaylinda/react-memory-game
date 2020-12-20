@@ -1,10 +1,10 @@
+import { produce } from "immer";
 import { LevelData } from "./types"
 
-export const generateLevelData = (level: number): LevelData => {
+export const initializeLevelData = (): LevelData => {
   return {
-    level: level,
     numCols: 3,
-    correctSequence: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+    correctSequence: [],
     grid: [
       { id: 0, color: '#DE3163' },
       { id: 1, color: '#FF7F50' },
@@ -17,4 +17,12 @@ export const generateLevelData = (level: number): LevelData => {
       { id: 8, color: '#9FE2BF' },
     ],
   }
+}
+
+export const generateNextLevelData = (levelData: LevelData, nextLevel: number): LevelData => {
+  return produce(levelData, (draft) => {
+    if (draft.correctSequence.length < nextLevel) {
+      draft.correctSequence.push(Math.floor(Math.random() * (levelData.grid.length - 1)));
+    }
+  });
 }
