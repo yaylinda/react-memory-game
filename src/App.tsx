@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { chunk } from 'lodash';
 import classNames from 'classnames';
+import { produce } from 'immer';
 import { GameStage, LevelData } from './types';
 import { generateNextLevelData, initializeLevelData } from './utilities';
 import './App.css';
-import { produce } from 'immer';
 
 function App() {
-  const [currentLevel, setCurrentLevel] = useState<number>(1);
+  const [currentLevel, setCurrentLevel] = useState<number>(0);
   const [levelData, setLevelData] = useState<LevelData>(initializeLevelData());
-  const [gameStage, setGameStage] = useState<GameStage>("GENERATE_LEVEL");
+  const [gameStage, setGameStage] = useState<GameStage>("PENDING");
 
   // SHOW_PREVIEW - keep track of which dots to blink
   const [dotBlinkIndex, setDotBlinkIndex] = useState<number>(-1);
@@ -20,38 +20,25 @@ function App() {
 
   useEffect(() => {
     console.log(`useEffect - []`);
-    setUpLevelData();
   }, []);
 
   useEffect(() => {
-    if (gameStage !== "SHOW_PREVIEW") {
-      console.log(`useEffect - [gameStage, dotBlinkIndex] - NOT SHOW_PREVIEW, doing nothing`);
-      return;
-    }
-
-    if (dotBlinkIndex < levelData.correctSequence.length) {
-      console.log(`useEffect - [gameStage, dotBlinkIndex] - doing stuff`);
-      setTimeout(() => {
-        const newDotBlinkIndex = dotBlinkIndex + 1;
-        setDotBlinkIndex(newDotBlinkIndex);
-        setDotBlinkId(levelData.correctSequence[newDotBlinkIndex]);
-      }, 500);
-    } else {
-      console.log(`useEffect - [gameStage, dotBlinkIndex] - moving to ACCEPT_INPUT`);
-      setDotBlinkIndex(-1);
-      setDotBlinkId(-1);
-      setGameStage("ACCEPT_INPUT");
+    if (gameStage === "SHOW_PREVIEW") {
+      if (dotBlinkIndex < levelData.correctSequence.length) {
+        console.log(`useEffect - [gameStage, dotBlinkIndex] - doing stuff`);
+        setTimeout(() => {
+          const newDotBlinkIndex = dotBlinkIndex + 1;
+          setDotBlinkIndex(newDotBlinkIndex);
+          setDotBlinkId(levelData.correctSequence[newDotBlinkIndex]);
+        }, 500);
+      } else {
+        console.log(`useEffect - [gameStage, dotBlinkIndex] - moving to ACCEPT_INPUT`);
+        setDotBlinkIndex(-1);
+        setDotBlinkId(-1);
+        setGameStage("ACCEPT_INPUT");
+      }
     }
   }, [gameStage, dotBlinkIndex]);
-
-  const setUpLevelData = useCallback(() => {
-    const currentLevelData = generateNextLevelData(levelData, currentLevel);
-
-    console.log(`setUpLevelData - currentLevel: ${currentLevel}, currentLevelData: ${JSON.stringify(currentLevelData)}`);
-
-    setLevelData(currentLevelData);
-    setGameStage("SHOW_PREVIEW");
-  }, [currentLevel, levelData]);
 
   const setUpNextLevel = useCallback(() => {
     const nextLevel = currentLevel + 1;
@@ -84,6 +71,10 @@ function App() {
     }
 
   }, [levelData, gameStage, inputDotNumber]);
+
+  const startGame = () => {
+
+  };
 
   const endGame = () => {
     setCurrentLevel(1);
@@ -128,10 +119,42 @@ function App() {
     );
   }
 
+  const renderPendingState = () => {
+    return (
+      <div>
+        <div className="level-text">Dots Memory Game</div>
+        {renderDotsGrid()}
+        <div className="button-container">
+          <button className="btn btn-5" onClick={() => startGame()}>
+            Start Game
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const renderInGameState = () => {
+    return (
+      <div>
+        <div className="level-text">Level {currentLevel}</div>
+        {renderDotsGrid()}
+      </div>
+    );
+  }
+
+  const renderEndGameState = () => {
+    return (
+      <div>
+        END
+      </div>
+    );
+  }
+
   return (
     <div className="App">
-      <div className="level-text">Level {currentLevel}</div>
-      {renderDotsGrid()}
+      { gameStage === "PENDING" ? renderPendingState() : null }
+      { ["GENERATE_LEVEL", "SHOW_PREVIEW", "ACCEPT_INPUT"].includes(gameStage) ? renderInGameState() : null }
+      { gameStage === "GAME_OVER" ? renderEndGameState() : null }
     </div>
   );
 }
