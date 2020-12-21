@@ -6,6 +6,8 @@ import { GameStage, LevelData } from './types';
 import { generateNextLevelData, initializeLevelData } from './utilities';
 import './App.css';
 
+const IN_GAME_STAGES = ["GENERATE_LEVEL", "SHOW_PREVIEW", "ACCEPT_INPUT"];
+
 function App() {
   const [currentLevel, setCurrentLevel] = useState<number>(0);
   const [levelData, setLevelData] = useState<LevelData>(initializeLevelData());
@@ -55,6 +57,7 @@ function App() {
   const handleDotClick = useCallback((dotId: number) => {
     if (gameStage !== "ACCEPT_INPUT") {
       console.log(`handleDotClick - NOT ACCEPT_INPUT, doing nothing`);
+      return;
     }
 
     const isLastDot = inputDotNumber === levelData.correctSequence.length - 1;
@@ -73,14 +76,11 @@ function App() {
   }, [levelData, gameStage, inputDotNumber]);
 
   const startGame = () => {
-
+    setUpNextLevel();
   };
 
   const endGame = () => {
     setCurrentLevel(1);
-    setLevelData(produce(levelData, (draft) => {
-      draft.correctSequence = [];
-    }));
     setGameStage("GAME_OVER");
     setDotBlinkIndex(-1);
     setDotBlinkId(-1);
@@ -153,7 +153,7 @@ function App() {
   return (
     <div className="App">
       { gameStage === "PENDING" ? renderPendingState() : null }
-      { ["GENERATE_LEVEL", "SHOW_PREVIEW", "ACCEPT_INPUT"].includes(gameStage) ? renderInGameState() : null }
+      { IN_GAME_STAGES.includes(gameStage) ? renderInGameState() : null }
       { gameStage === "GAME_OVER" ? renderEndGameState() : null }
     </div>
   );
